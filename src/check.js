@@ -4,9 +4,9 @@ const baseURL = 'https://v3.vuejs.org/'
 // Wait for pages to load. Can be shorter locally.
 const delay = 2500
 
-const puppeteer = require('puppeteer')
-
 ;(async() => {
+  const puppeteer = require('puppeteer')
+
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
 
@@ -89,10 +89,10 @@ const puppeteer = require('puppeteer')
   }
 
   await browser.close()
-})()
 
-async function pause (time) {
-  return new Promise(resolve => {
-    setTimeout(resolve, time)
-  })
-}
+  async function pause (time) {
+    return new Promise(resolve => {
+      setTimeout(resolve, time)
+    })
+  }
+})()
