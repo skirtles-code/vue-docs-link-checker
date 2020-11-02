@@ -20,7 +20,7 @@ const puppeteer = require('puppeteer')
   for (let index = 0; index < urls.length; ++index) {
     const url = urls[index]
 
-    console.log(`Checking page ${index}/${urls.length}: ${url}`)
+    console.log(`Checking page ${index + 1}/${urls.length}: ${url}`)
 
     await page.goto('about:blank')
 
