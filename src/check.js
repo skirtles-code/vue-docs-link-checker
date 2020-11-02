@@ -20,7 +20,7 @@ const delay = 2500
   for (let index = 0; index < urls.length; ++index) {
     const url = urls[index]
 
-    console.log(`Checking page ${index + 1}/${urls.length}: ${url}`)
+    log(`Checking page ${index + 1}/${urls.length}: ${url}`)
 
     await page.goto('about:blank')
 
@@ -35,14 +35,14 @@ const delay = 2500
     })
 
     if (pageH1s.length === 0) {
-      console.log(`Missing h1: ${url}`)
+      logError(`* Missing h1: ${url}`)
     } else {
       if (pageH1s.length > 1) {
-        console.log(`Multiple h1s: ${url}`)
+        logError(`* Multiple h1s: ${url}`)
       }
 
       if (pageH1s[0].trim() === '404') {
-        console.log(`Missing: ${url}, found in ${pageSource[url]}`)
+        logError(`* Missing: ${url}, found in ${pageSource[url]}`)
       }
     }
 
@@ -80,7 +80,7 @@ const delay = 2500
     }
   }
 
-  console.log('=== Checking hashes ===')
+  log('=== Checking hashes ===')
 
   for (const url of urls) {
     const hashes = pageHashes[url]
@@ -88,7 +88,7 @@ const delay = 2500
 
     for (const hash of required) {
       if (!hashes.has(hash)) {
-        console.log(`Missing ${url} : ${hash}`)
+        logError(`* Missing ${url} : ${hash}`)
       }
     }
   }
@@ -99,5 +99,13 @@ const delay = 2500
     return new Promise(resolve => {
       setTimeout(resolve, time)
     })
+  }
+
+  function log (msg) {
+    console.log(msg)
+  }
+
+  function logError (msg) {
+    console.log('\x1b[36m%s\x1b[0m', msg)
   }
 })()
