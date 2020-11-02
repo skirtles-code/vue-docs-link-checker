@@ -30,15 +30,20 @@ const delay = 2500
     await pause(delay)
 
     // Use the <h1> to decide whether it's the 404 page
-    const pageH1 = await page.evaluate(() => {
-      const h1 = document.querySelector('h1')
-      return h1 ? h1.innerText : null
+    const pageH1s = await page.evaluate(() => {
+      return Array.from(document.querySelectorAll('h1')).map(h1 => h1.innerText)
     })
 
-    if (!pageH1) {
+    if (pageH1s.length === 0) {
       console.log(`Missing h1: ${url}`)
-    } else if (pageH1.trim() === '404') {
-      console.log(`Missing: ${url}, found in ${pageSource[url]}`)
+    } else {
+      if (pageH1s.length > 1) {
+        console.log(`Multiple h1s: ${url}`)
+      }
+
+      if (pageH1s[0].trim() === '404') {
+        console.log(`Missing: ${url}, found in ${pageSource[url]}`)
+      }
     }
 
     // These are the hashes available in the page that links can use
