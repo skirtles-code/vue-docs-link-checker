@@ -46,6 +46,23 @@ const delay = 2500
       }
     }
 
+    // Check the headings
+    const pageHxs = await page.evaluate(() => {
+      return Array.from(document.querySelectorAll('h1,h2,h3,h4,h5,h6')).map(hx => +hx.tagName.charAt(1))
+    })
+
+    if (pageHxs.length) {
+      let current = pageHxs[0]
+
+      for (const nextHeading of pageHxs) {
+        if (nextHeading > current + 1) {
+          logError(`* Heading jumps from h${current} to h${nextHeading} in ${url}`)
+        }
+
+        current = nextHeading
+      }
+    }
+
     // These are the hashes available in the page that links can use
     const hashes = await page.evaluate(() => {
       return Array.from(document.querySelectorAll('[id]')).map(el => el.id)
