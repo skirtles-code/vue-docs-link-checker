@@ -63,6 +63,31 @@ const delay = 2500
       }
     }
 
+    // Check the sidebar contains the current page
+    const hasSidebar = await page.evaluate(() => {
+      return !document.querySelector('.no-sidebar')
+    })
+
+    if (hasSidebar) {
+      const includedInIndex = await page.evaluate(() => {
+        return !!document.querySelector('.active.sidebar-link,.active.sidebar-heading')
+      })
+
+      if (!includedInIndex) {
+        // Check whether the page is linked from the main header instead
+        const navbarLinks = await page.evaluate(() => {
+          return Array.from(document.querySelectorAll('.navbar a')).map(anchor => anchor.href)
+        })
+
+        // URL after redirects
+        const finalUrl = page.url()
+
+        if (!navbarLinks.map(stripUrlSuffix).includes(stripUrlSuffix(finalUrl))) {
+          logError(`* Missing from index: ${url}`)
+        }
+      }
+    }
+
     // These are the hashes available in the page that links can use
     const hashes = await page.evaluate(() => {
       return Array.from(document.querySelectorAll('[id]')).map(el => el.id)
@@ -111,6 +136,10 @@ const delay = 2500
   }
 
   await browser.close()
+
+  function stripUrlSuffix (url) {
+    return url.replace(/#.*$/, '').replace(/\.html$/, '').replace(/\/$/, '')
+  }
 
   async function pause (time) {
     return new Promise(resolve => {
