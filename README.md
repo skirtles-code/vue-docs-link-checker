@@ -9,4 +9,4 @@ The target server can be changed in `check.js`, e.g. for testing PRs or a local 
 
 ---
 
-Copyright &copy; 2020 skirtle - skirtlesden.com
+Copyright &copy; 2020-2021 skirtle - skirtlesden.com
