@@ -1,8 +1,15 @@
 // This is the starting point. Only URLs starting with this prefix will be fetched.
-const baseURL = 'https://v3.vuejs.org/'
+const baseUrl = 'https://v3.vuejs.org/'
 
 // Wait for pages to load. Can be shorter locally.
 const delay = 2500
+
+const ignoreHashes = [
+  'support-vuejs/#btc',
+  'support-vuejs/#bch',
+  'support-vuejs/#eth',
+  'support-vuejs/#ltc'
+].map(url => baseUrl + url)
 
 ;(async() => {
   const puppeteer = require('puppeteer')
@@ -10,12 +17,12 @@ const delay = 2500
   const browser = await puppeteer.launch()
   const page = await browser.newPage()
 
-  const urls = [baseURL]
+  const urls = [baseUrl]
   const pageSource = Object.create(null)
   const pageHashes = Object.create(null)
   const linkedHashes = Object.create(null)
-  pageSource[baseURL] = 'baseURL'
-  linkedHashes[baseURL] = new Set()
+  pageSource[baseUrl] = 'baseUrl'
+  linkedHashes[baseUrl] = new Set()
 
   for (let index = 0; index < urls.length; ++index) {
     const url = urls[index]
@@ -42,7 +49,8 @@ const delay = 2500
       }
 
       if (pageH1s[0].trim() === '404') {
-        logError(`* Missing: ${url}, found in ${pageSource[url]}`)
+        logError(`* Missing page ${url}`)
+        log(`  - Linked from ${pageSource[url]}`)
       }
     }
 
@@ -101,21 +109,22 @@ const delay = 2500
     })
 
     for (const link of links) {
-      if (link.startsWith(baseURL)) {
+      if (link.startsWith(baseUrl)) {
         const trimmed = link.replace(/#.*$/, '')
 
         if (!pageSource[trimmed]) {
           pageSource[trimmed] = url
-          linkedHashes[trimmed] = new Set()
+          linkedHashes[trimmed] = Object.create(null)
           urls.push(trimmed)
         }
 
         if (link !== trimmed) {
-          const hash = link.replace(/^.*#/, '')
+          const hash = decodeURIComponent(link.replace(/^.*#/, ''))
 
           // Skip href="#" links
           if (hash) {
-            linkedHashes[trimmed].add(hash)
+            linkedHashes[trimmed][hash] = linkedHashes[trimmed][hash] || new Set()
+            linkedHashes[trimmed][hash].add(url)
           }
         }
       }
@@ -124,14 +133,40 @@ const delay = 2500
 
   log('=== Checking hashes ===')
 
+  const skippedHashes = new Set()
+
   for (const url of urls) {
     const hashes = pageHashes[url]
     const required = linkedHashes[url]
 
-    for (const hash of required) {
+    for (const hash in required) {
       if (!hashes.has(hash)) {
-        logError(`* Missing ${url} : ${hash}`)
+        const fullUrl = `${url}#${hash}`
+
+        if (ignoreHashes.includes(fullUrl)) {
+          skippedHashes.add(fullUrl)
+        } else {
+          logError(`* Missing hash ${url}#${hash}`)
+
+          for (const source of required[hash]) {
+            log(`  - Linked from ${source}`)
+          }
+        }
       }
+    }
+  }
+
+  if (skippedHashes.size) {
+    log(`Skipped hashes:`)
+
+    for (const hash of skippedHashes) {
+      log(`- ${hash}`)
+    }
+  }
+
+  for (const hash of ignoreHashes) {
+    if (!skippedHashes.has(hash)) {
+      logError(`* Hash ${hash} was configured to be ignored but was not encountered`)
     }
   }
 
