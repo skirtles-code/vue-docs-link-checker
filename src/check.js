@@ -64,7 +64,7 @@ const ignoreHashes = [
 
       for (const nextHeading of pageHxs) {
         if (nextHeading > current + 1) {
-          logError(`* Heading jumps from h${current} to h${nextHeading} in ${url}`)
+          logWarn(`* Heading jumps from h${current} to h${nextHeading} in ${url}`)
         }
 
         current = nextHeading
@@ -125,6 +125,11 @@ const ignoreHashes = [
           if (hash) {
             linkedHashes[trimmed][hash] = linkedHashes[trimmed][hash] || new Set()
             linkedHashes[trimmed][hash].add(url)
+
+            if (!trimmed.endsWith('.html') && !trimmed.endsWith('/')) {
+              logError(`* Missing .html at the end of ${link}`)
+              log(`  - Linked from ${url}`)
+            }
           }
         }
       }
@@ -186,7 +191,11 @@ const ignoreHashes = [
     console.log(msg)
   }
 
-  function logError (msg) {
+  function logWarn (msg) {
     console.log('\x1b[36m%s\x1b[0m', msg)
+  }
+
+  function logError (msg) {
+    console.log('\x1b[33m%s\x1b[0m', msg)
   }
 })()
